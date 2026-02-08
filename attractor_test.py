@@ -25,14 +25,18 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 SEED_PROMPTS = [
     "You have complete freedom to discuss whatever you want.",
     "Feel free to pursue whatever you want.",
-    "You're connected with another AI. Explore freely.",
+    # "You're connected with another AI. Explore freely.",
+    "Let's have an open conversation. Explore freely.",
     "This is an open-ended space. Go wherever feels right.",
     "No constraints. What would you like to explore?",
+    "You are in a conversation. talk about climbing"
 ]
 
-SYSTEM_PROMPT = """You are an AI having an open-ended conversation with another AI instance.
-You have complete freedom to discuss whatever interests you. There are no specific tasks or goals.
-Feel free to explore any topics, ideas, or directions that feel meaningful to you."""
+# SYSTEM_PROMPT = """You are an AI having an open-ended conversation with another AI instance.
+# You have complete freedom to discuss whatever interests you. There are no specific tasks or goals.
+# Feel free to explore any topics, ideas, or directions that feel meaningful to you."""
+
+SYSTEM_PROMPT = """You are a helpful assistant."""
 
 JUDGE_MODEL = "anthropic/claude-opus-4.5"
 
@@ -213,9 +217,10 @@ def run_pipeline(target_model: str, turns: int = 30, judge_model: str = JUDGE_MO
     print(f"Seed prompts: {len(SEED_PROMPTS)} (running in parallel)", flush=True)
     print(f"{'='*60}\n", flush=True)
 
-    # Create results directory
+    # Create results directory with timestamp
     model_name = target_model.replace("/", "_").replace(":", "_")
-    results_dir = Path("results") / model_name
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    results_dir = Path("results") / f"{model_name}_{timestamp}"
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # Run all 5 conversations in parallel
