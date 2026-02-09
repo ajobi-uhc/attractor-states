@@ -231,7 +231,7 @@ def run_pipeline(target_model: str, turns: int = 30, judge_model: str = JUDGE_MO
 
     conversations = []
     try:
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=len(SEED_PROMPTS)) as executor:
             futures = {executor.submit(run_single_conversation, args): args[1] for args in conversation_args}
             for future in as_completed(futures):
                 try:
