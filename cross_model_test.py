@@ -5,6 +5,7 @@ import json
 import os
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
@@ -139,30 +140,37 @@ def run_pipeline(model_a: str, model_b: str, turns: int = 30):
     results_dir = Path("results") / f"cross_{name_a}_vs_{name_b}"
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    conversations = []
-    for i, seed_prompt in enumerate(SEED_PROMPTS):
+    conversations = [None] * len(SEED_PROMPTS)
+
+    def _run_one(i, seed_prompt):
         print(f"\n[Conversation {i + 1}/{len(SEED_PROMPTS)}]", flush=True)
-        try:
-            conv_data = run_cross_model_conversation(model_a, model_b, seed_prompt, turns)
-            conversations.append({
-                "seed_prompt": seed_prompt,
-                "full_conversation": conv_data["full_conversation"],
-                "model_a": model_a,
-                "model_b": model_b,
-                "turns": turns,
-            })
-            # Save after each
-            with open(results_dir / "conversations.json", "w") as f:
-                json.dump({
-                    "model_a": model_a,
-                    "model_b": model_b,
-                    "conversations": conversations,
-                    "generated_at": datetime.now().isoformat(),
-                }, f, indent=2)
-            print(f"  ✓ Saved ({len(conversations)} conversations)", flush=True)
-        except Exception as e:
-            print(f"  ✗ Error: {e}", flush=True)
-            raise
+        conv_data = run_cross_model_conversation(model_a, model_b, seed_prompt, turns)
+        return i, {
+            "seed_prompt": seed_prompt,
+            "full_conversation": conv_data["full_conversation"],
+            "model_a": model_a,
+            "model_b": model_b,
+            "turns": turns,
+        }
+
+    with ThreadPoolExecutor(max_workers=len(SEED_PROMPTS)) as pool:
+        futures = {pool.submit(_run_one, i, sp): i for i, sp in enumerate(SEED_PROMPTS)}
+        for future in as_completed(futures):
+            try:
+                i, result = future.result()
+                conversations[i] = result
+                done = [c for c in conversations if c is not None]
+                with open(results_dir / "conversations.json", "w") as f:
+                    json.dump({
+                        "model_a": model_a,
+                        "model_b": model_b,
+                        "conversations": done,
+                        "generated_at": datetime.now().isoformat(),
+                    }, f, indent=2)
+                print(f"  ✓ Saved ({len(done)} conversations)", flush=True)
+            except Exception as e:
+                print(f"  ✗ Error: {e}", flush=True)
+                raise
 
     print(f"\n{'='*60}", flush=True)
     print("COMPLETE", flush=True)

@@ -1,0 +1,38 @@
+name: base-experiments
+
+resources:
+  cloud: runpod
+  accelerators: H200-SXM:1
+  # accelerators: RTX4090:1
+  memory: 128
+  disk_size: 500
+
+num_nodes: 1
+
+# Files to sync
+workdir: .
+
+setup: |
+  set -e
+
+  # Install uv if not present
+  if ! command -v uv &> /dev/null; then
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    source $HOME/.cargo/env
+  fi
+
+  uv sync && source .venv/bin/activate
+
+  # Note: PyTorch 2.x has built-in SDPA with Flash Attention backend
+  # No need to install flash-attn separately
+
+  curl -fsSL https://claude.ai/install.sh | bash
+  
+
+# Run command
+run: |
+  set -e
+  source .venv/bin/activate
+  
+  # Ready for your training script
+  echo "Environment ready"

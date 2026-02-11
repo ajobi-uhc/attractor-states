@@ -1,0 +1,32 @@
+[project]
+name = "attractor-states"
+version = "0.1.0"
+description = "experiments"
+requires-python = "==3.10"
+dependencies = [
+    "torch",
+    "transformers>=4.57.0",
+    "accelerate",
+    "huggingface_hub",
+    "safetensors",
+    "matplotlib",
+    "numpy",
+    "tqdm",
+    "jupyter",
+    "ipykernel",
+    "skypilot-nightly[runpod]",
+    "runpod>=1.5.1",
+    "tiktoken",
+    "nnsight",
+    "openai",
+    "rollouts",
+    "datasets",
+    "loguru",
+    "pydantic",
+    "python-dotenv",
+    "trl",
+    "scikit-learn",
+    "peft",
+    "bitsandbytes",
+    "hf_transfer",
+]
